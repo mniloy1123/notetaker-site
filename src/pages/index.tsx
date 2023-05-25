@@ -48,6 +48,13 @@ const Content: React.FC = () => {
       void refetchTopics();
     },
   });
+  
+  const deleteTopic = api.topic.delete.useMutation({
+    onSuccess: () => {
+      void refetchTopics();
+    },
+  });
+  
 
   const { data: notes, refetch: refetchNotes } = api.note.getAll.useQuery(
     {
@@ -75,16 +82,30 @@ const Content: React.FC = () => {
       <div className="px-2">
         <ul className="menu rounded-box w-56 bg-base-100 p-2">
           {topics?.map((topic) => (
-            <li key={topic.id}>
+            <li
+              key={topic.id}
+              className={`items-left my-2 flex justify-start rounded-md ${
+                selectedTopic?.id === topic.id ? "bg-gray-200" : ""
+              }`}
+            >
               <a
                 href="#"
                 onClick={(evt) => {
                   evt.preventDefault();
                   setSelectedTopic(topic);
                 }}
+                className="mr-2"
               >
                 {topic.title}
               </a>
+              <div className="card-actions">
+                <button
+                  onClick={() => void deleteTopic.mutate({ id: topic.id })}
+                  className="btn-warning btn-xs btn px-5"
+                >
+                  Delete
+                </button>
+              </div>
             </li>
           ))}
         </ul>
@@ -94,7 +115,7 @@ const Content: React.FC = () => {
           placeholder="New Topic"
           className="input-bordered input input-sm w-full"
           onKeyDown={(e) => {
-            if (e.key === "Enter") {
+            if (e.key === "Enter" && e.currentTarget.value.trim() !== "") {
               createTopic.mutate({
                 title: e.currentTarget.value,
               });
